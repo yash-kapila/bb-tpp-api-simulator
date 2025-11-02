@@ -234,12 +234,14 @@ export async function createAISConsent({
   const scope = 'openid accounts payments'; // AIS scope includes accounts
   
   // Default AIS permissions for account information access
+  // Only include permissions valid for UK Open Banking v3.1
   const defaultAISPermissions = [
     'ReadAccountsBasic', 'ReadAccountsDetail', 'ReadBalances', 
-    'ReadBeneficiariesDetail', 'ReadTransactionsBasic', 'ReadTransactionsCredits',
-    'ReadTransactionsDebits', 'ReadTransactionsDetail', 'ReadOffers', 'ReadPAN',
-    'ReadParty', 'ReadPartyPSU', 'ReadProducts', 'ReadStandingOrdersDetail',
-    'ReadScheduledPaymentsDetail', 'ReadStatementsDetail', 'ReadDirectDebits'
+    'ReadBeneficiariesBasic', 'ReadBeneficiariesDetail',
+    'ReadTransactionsBasic', 'ReadTransactionsCredits',
+    'ReadTransactionsDebits', 'ReadTransactionsDetail',
+    'ReadPAN', 'ReadParty', 'ReadDirectDebits',
+    'ReadStandingOrdersBasic', 'ReadStandingOrdersDetail'
   ];
   
   const isoNowPlusMinutes = (minutes) => {
@@ -319,235 +321,6 @@ export async function createAISConsent({
 }
 
 /**
- * Exchange authorization code for AIS access token
- * This is used to get an access token to fetch accounts information post AIS consent authorization
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} authorizationCode - Authorization code from OAuth redirect
- * @param {string} redirectUri - OAuth redirect URI (must match consent creation)
- * @returns {Object} Access token and metadata
- */
-export async function exchangeCodeForToken(providerCode, authorizationCode, redirectUri) {
-  const baseUrl = getBaseUrl();
-  const clientId = getClientId();
-  const privateKey = getPrivateKey();
-  
-  const now = Math.floor(Date.now() / 1000);
-  const exp = now + 600;
-  
-  const tokenEndpoint = `${baseUrl}/api/oidc/${encodeURIComponent(providerCode)}/tokens`;
-  
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const payload = {
-    iss: clientId,
-    sub: clientId,
-    aud: tokenEndpoint,
-    jwi: generateUuid(),
-    exp,
-    iat: now
-  };
-  
-  const clientAssertion = jwt.sign(payload, privateKey, { 
-    algorithm: 'RS256', 
-    header 
-  });
-  
-  const body = {
-    provider_code: providerCode,
-    grant_type: 'authorization_code',
-    code: authorizationCode,
-    client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-    client_assertion: clientAssertion,
-    redirect_uri: redirectUri,
-    client_id: clientId
-  };
-  
-  try {
-    const { data } = await axios.post(tokenEndpoint, body, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (!data.access_token) {
-      throw new Error('No access_token in response');
-    }
-    
-    return {
-      accessToken: `Bearer ${data.access_token}`,
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
-      scope: data.scope
-    };
-  } catch (error) {
-    console.error('Token exchange failed:');
-    console.error('Status:', error.response?.status);
-    console.error('Response data:', JSON.stringify(error.response?.data, null, 2));
-    
-    const errorMessage = error.response?.data?.error 
-      || error.response?.data?.message 
-      || JSON.stringify(error.response?.data)
-      || error.message;
-    throw new Error(`Failed to exchange code for token: ${errorMessage}`);
-  }
-}
-
-/**
- * Fetch accounts using AIS access token
- * Retrieves all accounts authorized under the AIS consent
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Account list with details
- */
-export async function getAccounts(providerCode, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts`;
-  
-  try {
-    const { data } = await axios.get(url, {
-      headers: {
-        'Authorization': accessToken
-      }
-    });
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to fetch accounts: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
- * Refresh AIS accounts data
- * Triggers a refresh of account information from the ASPSP
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Refresh operation status
- */
-export async function refreshAccounts(providerCode, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts/refresh`;
-  
-  try {
-    const { data } = await axios.post(url, 
-      { InitiatedByCustomer: false },
-      {
-        headers: {
-          'Authorization': accessToken,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to refresh accounts: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
- * Get AIS account refresh status
- * Checks the status of an ongoing account data refresh operation
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Current refresh status
- */
-export async function getRefreshStatus(providerCode, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts/refresh/status`;
-  
-  try {
-    const { data } = await axios.get(url, {
-      headers: {
-        'Authorization': accessToken
-      }
-    });
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to get refresh status: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
- * Fetch account transactions using AIS access token
- * Retrieves transaction history for a specific account
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accountId - Account identifier
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Transaction list with details
- */
-export async function getAccountTransactions(providerCode, accountId, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts/${encodeURIComponent(accountId)}/transactions`;
-  
-  try {
-    const { data } = await axios.get(url, {
-      headers: {
-        'Authorization': accessToken
-      }
-    });
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to fetch transactions: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
- * Fetch account balances using AIS access token
- * Retrieves current balance information for a specific account
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accountId - Account identifier
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Balance information
- */
-export async function getAccountBalances(providerCode, accountId, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts/${encodeURIComponent(accountId)}/balances`;
-  
-  try {
-    const { data } = await axios.get(url, {
-      headers: {
-        'Authorization': accessToken
-      }
-    });
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to fetch balances: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
- * Fetch account standing orders using AIS access token
- * Retrieves standing order information for a specific account
- * 
- * @param {string} providerCode - Open Banking provider code
- * @param {string} accountId - Account identifier
- * @param {string} accessToken - Bearer token from AIS authorization
- * @returns {Object} Standing orders list
- */
-export async function getAccountStandingOrders(providerCode, accountId, accessToken) {
-  const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/accounts/${encodeURIComponent(accountId)}/standing-orders`;
-  
-  try {
-    const { data } = await axios.get(url, {
-      headers: {
-        'Authorization': accessToken
-      }
-    });
-    
-    return data;
-  } catch (error) {
-    throw new Error(`Failed to fetch standing orders: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-/**
  * Get AIS consent details by consent ID
  * A TPP may optionally retrieve an account-access-consent resource that they have created to check its status.
  * This is an AIS-specific operation for account-access-consents (not payment consents).
@@ -556,7 +329,7 @@ export async function getAccountStandingOrders(providerCode, accountId, accessTo
  * @param {string} consentId - AIS consent identifier
  * @returns {Object} AIS consent details including status, permissions, and expiration
  */
-export async function getConsentDetails(providerCode, consentId) {
+export async function getConsentDetails(providerCode, consentId) {  
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/account-access-consents/${encodeURIComponent(consentId)}`;
   

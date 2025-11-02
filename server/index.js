@@ -65,48 +65,6 @@ app.get('/', (req, res) => {
         description: 'Create AIS consent and get authorization URL',
         example: 'curl -X POST http://localhost:3002/api/ais/consent -H "Content-Type: application/json" -d "{}"'
       },
-      exchangeToken: {
-        method: 'POST',
-        path: '/api/ais/token',
-        description: 'Exchange authorization code for access token',
-        example: 'curl -X POST http://localhost:3002/api/ais/token -H "Content-Type: application/json" -d \'{"code":"YOUR_AUTH_CODE"}\''
-      },
-      getAccounts: {
-        method: 'GET',
-        path: '/api/ais/accounts',
-        description: 'Fetch all accounts',
-        example: 'curl "http://localhost:3002/api/ais/accounts?accessToken=Bearer%20YOUR_TOKEN"'
-      },
-      getTransactions: {
-        method: 'GET',
-        path: '/api/ais/accounts/:accountId/transactions',
-        description: 'Fetch transactions for an account',
-        example: 'curl "http://localhost:3002/api/ais/accounts/ACCOUNT_ID/transactions?accessToken=Bearer%20YOUR_TOKEN"'
-      },
-      getBalances: {
-        method: 'GET',
-        path: '/api/ais/accounts/:accountId/balances',
-        description: 'Fetch balances for an account',
-        example: 'curl "http://localhost:3002/api/ais/accounts/ACCOUNT_ID/balances?accessToken=Bearer%20YOUR_TOKEN"'
-      },
-      getStandingOrders: {
-        method: 'GET',
-        path: '/api/ais/accounts/:accountId/standing-orders',
-        description: 'Fetch standing orders for an account',
-        example: 'curl "http://localhost:3002/api/ais/accounts/ACCOUNT_ID/standing-orders?accessToken=Bearer%20YOUR_TOKEN"'
-      },
-      refreshAccounts: {
-        method: 'POST',
-        path: '/api/ais/accounts/refresh',
-        description: 'Trigger account data refresh',
-        example: 'curl -X POST http://localhost:3002/api/ais/accounts/refresh -H "Content-Type: application/json" -d \'{"accessToken":"Bearer YOUR_TOKEN"}\''
-      },
-      getRefreshStatus: {
-        method: 'GET',
-        path: '/api/ais/accounts/refresh/status',
-        description: 'Check refresh status',
-        example: 'curl "http://localhost:3002/api/ais/accounts/refresh/status?accessToken=Bearer%20YOUR_TOKEN"'
-      },
       getConsent: {
         method: 'GET',
         path: '/api/ais/consent/:consentId',
