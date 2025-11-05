@@ -28,7 +28,9 @@ function getPrivateKey() {
   const keyValue = process.env.OB_PRIVATE_KEY;
 
   if (keyValue && keyValue.includes('BEGIN')) {
-    return keyValue;
+    // Replace escaped newlines with actual newlines
+    // This handles Azure Key Vault secrets that come as single-line strings
+    return keyValue.replace(/\\n/g, '\n');
   }
 
   if (keyPath) {

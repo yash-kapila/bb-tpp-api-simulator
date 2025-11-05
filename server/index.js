@@ -52,9 +52,9 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'BB TPP API Simulator',
-    description: 'curl-friendly API simulator for UK Open Banking AIS (Account Information Services) testing with SaltEdge',
+    description: 'curl-friendly API simulator for Open Banking testing with SaltEdge',
     version: '1.0.0',
-    service: 'AIS (Account Information Services)',
+    service: 'Open Banking',
     endpoints: {
       health: {
         method: 'GET',
