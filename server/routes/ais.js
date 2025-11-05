@@ -7,7 +7,7 @@ import express from 'express';
 import { 
   createAISConsent,
   getConsentDetails
-} from '../services/saltedge.js';
+} from '../services/ais-service.js';
 
 const router = express.Router();
 
@@ -27,8 +27,6 @@ router.post('/consent', async (req, res, next) => {
       providerCode = process.env.OB_PROVIDER_CODE || 'backbase_dev_uk',
       redirectUri = process.env.REDIRECT_URI || 'https://backbase-dev.com/callback',
       permissions,
-      transactionFromDateTime,
-      transactionToDateTime,
       expirationDateTime
     } = req.body;
 
@@ -40,22 +38,13 @@ router.post('/consent', async (req, res, next) => {
       providerCode,
       redirectUri,
       permissions,
-      transactionFromDateTime,
-      transactionToDateTime,
       expirationDateTime
     });
 
-    console.log(`\n✅ SUCCESS! Consent ID: ${result.consentId}`);
-    console.log(`\n📋 Next Steps:`);
-    console.log(`   1. Copy the authorization URL below and open it in your browser`);
-    console.log(`   2. Complete the authorization flow`);
-    console.log(`   3. Extract the 'code' parameter from the redirect URL`);
-    console.log(`   4. Use the code to exchange for access token\n`);
-
     res.json({
-      success: true,
-      message: 'Consent created successfully. Open the authorizationUrl in your browser to authorize.',
-      data: result
+      consentId: result.consentId,
+      authorizationUrl: result.authorizationUrl,
+      status: result.status,
     });
   } catch (error) {
     console.error(`\n❌ ERROR: ${error.message}\n`);

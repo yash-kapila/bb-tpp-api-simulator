@@ -60,38 +60,8 @@ PRIORA_URL=priora.saltedge.com
 PORT=3002
 ```
 
-## Complete Flow
+## Service Architecture
 
-```bash
-# 1. Create consent
-RESPONSE=$(curl -s -X POST http://localhost:3002/api/ais/consent \
-  -H "Content-Type: application/json" -d '{}')
-
-# 2. Extract and open authorization URL (from response)
-# Complete authorization in browser
-
-# 3. Use authorization code (see saltedge-extended.js for token exchange)
-```
-
-Use `./test-flow.sh` for interactive testing.
-
-## Azure Deployment
-
-Deploy to Azure App Service with Key Vault integration:
-
-```bash
-./deploy-azure.sh
-```
-
-This provisions:
-- Azure App Service (Node.js 18)
-- Azure Key Vault (for private key storage)
-- Managed Identity (secure access)
-- HTTPS endpoint
-
-See `azure/README.md` for detailed deployment options.
-
-## Archived Functions
-
-Post-authorization functions (token exchange, accounts, transactions, balances, etc.) are preserved in `server/services/saltedge-extended.js` but not exposed via API. Import from that file if needed.
+- **`server/services/ais-service.js`** - Core AIS consent operations (create, retrieve)
+- **`server/services/saltedge-extended.js`** - Archived post-authorization functions (token exchange, accounts, transactions, balances, etc.) - not exposed via API
 

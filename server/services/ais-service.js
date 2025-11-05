@@ -1,11 +1,10 @@
 /**
- * SaltEdge Integration Service - AIS (Account Information Services) Only
+ * SaltEdge AIS Service - Account Information Services
  * 
  * Handles all communication with SaltEdge Priora API for Account Information Services.
  * This module provides functions for:
  * - Creating AIS consents (account-access-consents)
- * - Exchanging authorization codes for AIS access tokens
- * - Fetching account information (accounts, transactions, balances, standing orders)
+ * - Retrieving consent details
  * 
  * NOTE: PIS (Payment Initiation Services) is NOT implemented in this module.
  *       All functions here are specific to AIS/AISP operations.
@@ -40,6 +39,7 @@ function getPrivateKey() {
     if (fs.existsSync(fullPath)) {
       return fs.readFileSync(fullPath, 'utf8');
     }
+
   }
 
   throw new Error('Private key not configured. Set OB_PRIVATE_KEY or OB_PRIVATE_KEY_PATH in .env');
@@ -119,7 +119,7 @@ export async function getClientGrantToken(providerCode, redirectUri) {
     iss: clientId,
     sub: clientId,
     aud,
-    jwi: generateUuid(),
+    jti: generateUuid(),
     exp,
     iat: now
   };
@@ -217,8 +217,6 @@ function buildAuthorizationUrl(authorizationEndpoint, { redirectUri, scope, requ
  * @param {string} providerCode - Open Banking provider code
  * @param {string} redirectUri - OAuth redirect URI
  * @param {Array<string>} permissions - AIS permissions (ReadAccounts, ReadBalances, etc.)
- * @param {string} transactionFromDateTime - Start date for transaction history
- * @param {string} transactionToDateTime - End date for transaction history
  * @param {string} expirationDateTime - Consent expiration date
  * @returns {Object} Consent details with authorization URL
  */
@@ -226,8 +224,6 @@ export async function createAISConsent({
   providerCode,
   redirectUri,
   permissions,
-  transactionFromDateTime,
-  transactionToDateTime,
   expirationDateTime
 }) {
   const baseUrl = getBaseUrl();
@@ -251,9 +247,7 @@ export async function createAISConsent({
   const consentBody = {
     Data: {
       ExpirationDateTime: expirationDateTime || isoNowPlusMinutes(60 * 24 * 30),
-      Permissions: permissions || defaultAISPermissions,
-      TransactionFromDateTime: transactionFromDateTime || isoNowPlusMinutes(-24 * 60),
-      TransactionToDateTime: transactionToDateTime || isoNowPlusMinutes(24 * 60)
+      Permissions: permissions || defaultAISPermissions
     }
   };
   
@@ -304,8 +298,6 @@ export async function createAISConsent({
       consentId,
       authorizationUrl,
       status: data?.Data?.Status,
-      permissions: data?.Data?.Permissions,
-      expirationDateTime: data?.Data?.ExpirationDateTime
     };
   } catch (error) {
     console.error('❌ AIS Consent creation failed:');
@@ -357,4 +349,5 @@ export async function getConsentDetails(providerCode, consentId) {
     throw new Error(`Failed to fetch AIS consent details: ${errorMessage}`);
   }
 }
+
 

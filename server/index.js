@@ -2,7 +2,8 @@
 /**
  * BB TPP API Simulator - Main Server
  * 
- * A curl-friendly API simulator for testing UK Open Banking flows with SaltEdge.
+ * A curl-friendly API simulator for testing UK Open Banking AIS (Account Information Services) with SaltEdge.
+ * Provides REST API endpoints for creating and managing AIS consents.
  * No UI - pure REST API interface for automation and testing.
  */
 
@@ -51,24 +52,25 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'BB TPP API Simulator',
-    description: 'curl-friendly API simulator for UK Open Banking testing with SaltEdge',
+    description: 'curl-friendly API simulator for UK Open Banking AIS (Account Information Services) testing with SaltEdge',
     version: '1.0.0',
+    service: 'AIS (Account Information Services)',
     endpoints: {
       health: {
         method: 'GET',
         path: '/api/health',
         description: 'Health check endpoint'
       },
-      createConsent: {
+      createAISConsent: {
         method: 'POST',
         path: '/api/ais/consent',
-        description: 'Create AIS consent and get authorization URL',
+        description: 'Create AIS account access consent and get authorization URL',
         example: 'curl -X POST http://localhost:3002/api/ais/consent -H "Content-Type: application/json" -d "{}"'
       },
-      getConsent: {
+      getAISConsent: {
         method: 'GET',
         path: '/api/ais/consent/:consentId',
-        description: 'Get consent details by ID',
+        description: 'Get AIS consent details by consent ID',
         example: 'curl "http://localhost:3002/api/ais/consent/CONSENT_ID"'
       }
     },
@@ -98,7 +100,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 Backbase TPP API Simulator');
+  console.log('🚀 Backbase TPP API Simulator - AIS (Account Information Services)');
   console.log('='.repeat(70));
   console.log(`\n   Server:        http://localhost:${PORT}`);
   console.log(`   Provider:      ${process.env.OB_PROVIDER_CODE || 'Not configured'}`);
@@ -107,8 +109,8 @@ app.listen(PORT, () => {
   console.log(`\n   Documentation: http://localhost:${PORT}`);
   console.log(`   Health Check:  http://localhost:${PORT}/api/health`);
   console.log('\n' + '='.repeat(70));
-  console.log('\n✨ Ready to accept curl commands!\n');
-  console.log('Quick Start:');
+  console.log('\n✨ Ready to accept AIS consent requests!\n');
+  console.log('Quick Start (Create AIS Consent):');
   console.log(`   curl -X POST http://localhost:${PORT}/api/ais/consent -H "Content-Type: application/json" -d "{}"\n`);
 });
 
