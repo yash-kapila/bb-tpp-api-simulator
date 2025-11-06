@@ -23,27 +23,118 @@ Server runs on **http://localhost:3002**
 
 ## API Endpoints
 
-### 1. Create Consent
+**Base URL Placeholder:** `{BASE_URL}`
+- **Local:** `http://localhost:3002`
+
+Replace `{BASE_URL}` with the appropriate URL in all examples below.
+
+---
+
+### 1. Health Check
+Check if the service is running.
+
 ```bash
-curl -X POST http://localhost:3002/api/ais/consent \
+curl {BASE_URL}/api/health
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-06T08:49:11.608Z",
+  "version": "1.0.0",
+  "service": "bb-tpp-api-simulator"
+}
+```
+
+---
+
+### 2. API Documentation
+Get list of all available endpoints.
+
+```bash
+curl {BASE_URL}/
+```
+
+---
+
+### 3. Create AIS Consent
+Create an Account Information Services consent and get the authorization URL.
+
+```bash
+curl -X POST {BASE_URL}/api/ais/consent \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-Returns `authorizationUrl` - open in browser to authorize.
+**Request Body (all fields optional):**
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| `providerCode` | string | Open Banking provider code | `backbase_dev_uk` (from env) |
+| `redirectUri` | string | OAuth callback URL | Value from env `REDIRECT_URI` |
+| `permissions` | array | List of AIS permissions | All 14 standard permissions |
+| `expirationDateTime` | string | ISO 8601 date when consent expires | 30 days from now |
 
-**Optional parameters:**
+**Example with custom parameters:**
+```bash
+curl -X POST {BASE_URL}/api/ais/consent \
+  -H "Content-Type: application/json" \
+  -d '{
+    "providerCode": "backbase_dev_uk",
+    "redirectUri": "https://your-app.com/callback",
+    "permissions": ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsBasic"],
+    "expirationDateTime": "2025-12-31T23:59:59Z"
+  }'
+```
+
+**Response:**
 ```json
 {
-  "providerCode": "backbase_dev_uk",
-  "redirectUri": "https://your-app.com/callback",
-  "permissions": ["ReadAccountsBasic", "ReadBalances"]
+  "consentId": "urn-backbase_dev_uk-intent-12345",
+  "authorizationUrl": "https://business-universal.dev.oblm.azure.backbaseservices.com/...",
+  "status": "Pending"
 }
 ```
 
-### 2. Get Consent Details
+➡️ Open `authorizationUrl` in a browser to authorize the consent.
+
+---
+
+### 4. Get Consent Details
+Retrieve details of an existing AIS consent by ID.
+
 ```bash
-curl "http://localhost:3002/api/ais/consent/CONSENT_ID?providerCode=backbase_dev_uk"
+curl "{BASE_URL}/api/ais/consent/{CONSENT_ID}"
+```
+
+**Path Parameters:**
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| `consentId` | string | The consent ID returned from create consent | Yes |
+
+**Query Parameters (optional):**
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `providerCode` | string | Open Banking provider code | `backbase_dev_uk` (from env) |
+
+**Example:**
+```bash
+curl "{BASE_URL}/api/ais/consent/urn-backbase_dev_uk-intent-12345?providerCode=backbase_dev_uk"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "Data": {
+      "ConsentId": "urn-backbase_dev_uk-intent-12345",
+      "Status": "AwaitingAuthorisation",
+      "Permissions": ["ReadAccountsBasic", "ReadBalances", ...],
+      "ExpirationDateTime": "2025-12-06T08:49:11Z"
+    }
+  }
+}
 ```
 
 ## Configuration (.env)
@@ -59,9 +150,3 @@ REDIRECT_URI=https://backbase-dev.com/callback
 PRIORA_URL=priora.saltedge.com
 PORT=3002
 ```
-
-## Service Architecture
-
-- **`server/services/ais-service.js`** - Core AIS consent operations (create, retrieve)
-- **`server/services/saltedge-extended.js`** - Archived post-authorization functions (token exchange, accounts, transactions, balances, etc.) - not exposed via API
-
