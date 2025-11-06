@@ -48,7 +48,9 @@ export async function exchangeCodeForToken(providerCode, authorizationCode, redi
   let privateKey;
   
   if (keyValue && keyValue.includes('BEGIN')) {
-    privateKey = keyValue;
+    // Replace escaped newlines with actual newlines
+    // This handles Azure Key Vault secrets that come as single-line strings
+    privateKey = keyValue.replace(/\\n/g, '\n');
   } else if (keyPath) {
     const fs = await import('fs');
     const path = await import('path');

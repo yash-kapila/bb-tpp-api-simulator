@@ -30,7 +30,19 @@ function getPrivateKey() {
   if (keyValue && keyValue.includes('BEGIN')) {
     // Replace escaped newlines with actual newlines
     // This handles Azure Key Vault secrets that come as single-line strings
-    return keyValue.replace(/\\n/g, '\n');
+    let processedKey = keyValue.replace(/\\n/g, '\n');
+    
+    // Also handle case where key might be URL-encoded or have other escape sequences
+    try {
+      // Try to decode if it's URL-encoded
+      if (keyValue.includes('%')) {
+        processedKey = decodeURIComponent(keyValue).replace(/\\n/g, '\n');
+      }
+    } catch (e) {
+      // If decoding fails, use the basic replacement
+    }
+    
+    return processedKey;
   }
 
   if (keyPath) {
@@ -39,9 +51,10 @@ function getPrivateKey() {
       : path.join(__dirname, '..', '..', keyPath);
     
     if (fs.existsSync(fullPath)) {
-      return fs.readFileSync(fullPath, 'utf8');
+      const key = fs.readFileSync(fullPath, 'utf8');
+      console.log('✅ Private key loaded from file successfully');
+      return key;
     }
-
   }
 
   throw new Error('Private key not configured. Set OB_PRIVATE_KEY or OB_PRIVATE_KEY_PATH in .env');
