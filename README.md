@@ -2,6 +2,16 @@
 
 curl-friendly API simulator for UK Open Banking AIS consent flow with SaltEdge.
 
+## Table of Contents
+
+- [Setup](#setup)
+- [API Endpoints](#api-endpoints)
+  - [1. Health Check](#1-health-check)
+  - [2. API Documentation](#2-api-documentation)
+  - [3. Create AIS Consent](#3-create-ais-consent)
+  - [4. Get Consent Details](#4-get-consent-details)
+- [Configuration (.env)](#configuration-env)
+
 ## Setup
 
 ```bash
