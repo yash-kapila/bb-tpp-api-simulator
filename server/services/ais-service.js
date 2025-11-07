@@ -407,4 +407,43 @@ export async function getConsentDetails(providerCode, consentId) {
   }
 }
 
+/**
+ * Revoke/Delete AIS consent by consent ID
+ * A TPP may revoke an account-access-consent resource that they have created.
+ * This is an AIS-specific operation for account-access-consents (not payment consents).
+ * 
+ * @param {string} providerCode - Open Banking provider code
+ * @param {string} consentId - AIS consent identifier to revoke
+ * @returns {boolean} True if consent was successfully revoked
+ */
+export async function revokeAISConsent(providerCode, consentId) {
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/api/${encodeURIComponent(providerCode)}/open-banking/v3.1/aisp/account-access-consents/${encodeURIComponent(consentId)}`;
+  
+  // Get client credentials token for the request
+  const defaultRedirectUri = process.env.REDIRECT_URI || 'https://backbase-dev.com/callback';
+  const clientGrantToken = await getClientGrantToken(providerCode, defaultRedirectUri);
+  
+  try {
+    const response = await axios.delete(url, {
+      headers: {
+        'Authorization': clientGrantToken
+      }
+    });
+    
+    // UK Open Banking DELETE endpoint returns 204 No Content on success
+    return true;
+  } catch (error) {
+    console.error('Failed to revoke AIS consent:');
+    console.error('Status:', error.response?.status);
+    console.error('Response data:', JSON.stringify(error.response?.data, null, 2));
+    
+    const errorMessage = error.response?.data?.error 
+      || error.response?.data?.message 
+      || JSON.stringify(error.response?.data)
+      || error.message;
+    throw new Error(`Failed to revoke AIS consent: ${errorMessage}`);
+  }
+}
+
 

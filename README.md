@@ -10,6 +10,7 @@ curl-friendly API simulator for UK Open Banking AIS consent flow with SaltEdge.
   - [2. API Documentation](#2-api-documentation)
   - [3. Create AIS Consent](#3-create-ais-consent)
   - [4. Get Consent Details](#4-get-consent-details)
+  - [5. Revoke AIS Consent](#5-revoke-ais-consent)
 - [Configuration (.env)](#configuration-env)
 
 ## Setup
@@ -146,6 +147,41 @@ curl "{BASE_URL}/api/ais/consent/urn-backbase_dev_uk-intent-12345?providerCode=b
   }
 }
 ```
+
+---
+
+### 5. Revoke AIS Consent
+Revoke/Delete an existing AIS consent by ID. This permanently removes the consent and prevents further use.
+
+```bash
+curl -X DELETE "{BASE_URL}/api/ais/consent/{CONSENT_ID}"
+```
+
+**Path Parameters:**
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| `consentId` | string | The consent ID to revoke | Yes |
+
+**Query Parameters (optional):**
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `providerCode` | string | Open Banking provider code | `backbase_dev_uk` (from env) |
+
+**Example:**
+```bash
+curl -X DELETE "{BASE_URL}/api/ais/consent/urn-backbase_dev_uk-intent-12345?providerCode=backbase_dev_uk"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Consent revoked successfully",
+  "consentId": "urn-backbase_dev_uk-intent-12345"
+}
+```
+
+---
 
 ## Configuration (.env)
 

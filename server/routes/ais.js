@@ -6,7 +6,8 @@
 import express from 'express';
 import { 
   createAISConsent,
-  getConsentDetails
+  getConsentDetails,
+  revokeAISConsent
 } from '../services/ais-service.js';
 
 const router = express.Router();
@@ -77,6 +78,41 @@ router.get('/consent/:consentId', async (req, res, next) => {
     res.json({
       success: true,
       data: consent
+    });
+  } catch (error) {
+    console.error(`\n❌ ERROR: ${error.message}\n`);
+    next(error);
+  }
+});
+
+/**
+ * DELETE /api/ais/consent/:consentId
+ * Revoke/Delete an AIS consent by consent ID
+ * 
+ * Path params:
+ * - consentId (required)
+ * 
+ * Query params:
+ * - providerCode (optional, defaults to env)
+ */
+router.delete('/consent/:consentId', async (req, res, next) => {
+  try {
+    const { consentId } = req.params;
+    const { 
+      providerCode = process.env.OB_PROVIDER_CODE || 'backbase_dev_uk'
+    } = req.query;
+
+    console.log(`\n🗑️  Revoking AIS consent: ${consentId}...`);
+    console.log(`   Provider: ${providerCode}`);
+    
+    await revokeAISConsent(providerCode, consentId);
+    
+    console.log(`✅ AIS consent revoked successfully\n`);
+
+    res.json({
+      success: true,
+      message: 'Consent revoked successfully',
+      consentId
     });
   } catch (error) {
     console.error(`\n❌ ERROR: ${error.message}\n`);

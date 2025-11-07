@@ -72,6 +72,12 @@ app.get('/', (req, res) => {
         path: '/api/ais/consent/:consentId',
         description: 'Get AIS consent details by consent ID',
         example: 'curl "http://localhost:3002/api/ais/consent/CONSENT_ID"'
+      },
+      revokeAISConsent: {
+        method: 'DELETE',
+        path: '/api/ais/consent/:consentId',
+        description: 'Revoke/Delete an AIS consent by consent ID',
+        example: 'curl -X DELETE "http://localhost:3002/api/ais/consent/CONSENT_ID"'
       }
     },
     documentation: 'See README.md for detailed examples and workflow'
