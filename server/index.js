@@ -2,8 +2,9 @@
 /**
  * BB TPP API Simulator - Main Server
  * 
- * A curl-friendly API simulator for testing UK Open Banking AIS (Account Information Services) with SaltEdge.
- * Provides REST API endpoints for creating and managing AIS consents.
+ * A curl-friendly API simulator for testing UK Open Banking AIS (Account Information Services) 
+ * and PIS (Payment Initiation Services) with SaltEdge.
+ * Provides REST API endpoints for creating and managing AIS and PIS consents.
  * No UI - pure REST API interface for automation and testing.
  */
 
@@ -13,6 +14,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ukAisRouter from './routes/uk/ais.js';
+import ukPisRouter from './routes/uk/pis.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +39,7 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use('/api/uk/ais', ukAisRouter);
+app.use('/api/uk/pis', ukPisRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -78,6 +81,18 @@ app.get('/', (req, res) => {
         path: '/api/uk/ais/consent/:consentId',
         description: 'Revoke/Delete a UK AIS consent by consent ID',
         example: 'curl -X DELETE "http://localhost:3002/api/uk/ais/consent/CONSENT_ID"'
+      },
+      createUKPISConsent: {
+        method: 'POST',
+        path: '/api/uk/pis/consent',
+        description: 'Create UK PIS payment consent and get authorization URL',
+        example: 'curl -X POST http://localhost:3002/api/uk/pis/consent -H "Content-Type: application/json" -d "{}"'
+      },
+      getUKPISConsent: {
+        method: 'GET',
+        path: '/api/uk/pis/consent/:consentId',
+        description: 'Get UK PIS consent details by consent ID',
+        example: 'curl "http://localhost:3002/api/uk/pis/consent/CONSENT_ID"'
       }
     },
     documentation: 'See README.md for detailed examples and workflow'
@@ -106,7 +121,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 Backbase TPP API Simulator - UK Open Banking AIS (Account Information Services)');
+  console.log('🚀 Backbase TPP API Simulator - UK Open Banking AIS & PIS');
   console.log('='.repeat(70));
   console.log(`\n   Server:        http://localhost:${PORT}`);
   console.log(`   Provider:      ${process.env.OB_PROVIDER_CODE || 'Not configured'}`);
@@ -115,9 +130,11 @@ app.listen(PORT, () => {
   console.log(`\n   Documentation: http://localhost:${PORT}`);
   console.log(`   Health Check:  http://localhost:${PORT}/api/health`);
   console.log('\n' + '='.repeat(70));
-  console.log('\n✨ Ready to accept UK AIS consent requests!\n');
+  console.log('\n✨ Ready to accept UK AIS and PIS consent requests!\n');
   console.log('Quick Start (Create UK AIS Consent):');
   console.log(`   curl -X POST http://localhost:${PORT}/api/uk/ais/consent -H "Content-Type: application/json" -d "{}"\n`);
+  console.log('Quick Start (Create UK PIS Consent):');
+  console.log(`   curl -X POST http://localhost:${PORT}/api/uk/pis/consent -H "Content-Type: application/json" -d "{}"\n`);
 });
 
 export default app;
