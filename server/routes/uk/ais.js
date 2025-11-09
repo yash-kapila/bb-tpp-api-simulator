@@ -1,5 +1,5 @@
 /**
- * AIS (Account Information Services) Routes
+ * UK Open Banking AIS (Account Information Services) Routes
  * Simplified API routes designed for curl access
  */
 
@@ -8,13 +8,13 @@ import {
   createAISConsent,
   getConsentDetails,
   revokeAISConsent
-} from '../services/ais-service.js';
+} from '../../services/uk/ais-service.js';
 
 const router = express.Router();
 
 /**
- * POST /api/ais/consent
- * Creates an AIS consent and returns the authorization URL
+ * POST /api/uk/ais/consent
+ * Creates a UK AIS consent and returns the authorization URL
  * This is the main entry point - one curl command to get started
  * 
  * Body:
@@ -31,7 +31,7 @@ router.post('/consent', async (req, res, next) => {
       expirationDateTime
     } = req.body;
 
-    console.log(`\n📝 Creating AIS consent...`);
+    console.log(`\n📝 Creating UK AIS consent...`);
     console.log(`   Provider: ${providerCode}`);
     console.log(`   Redirect URI: ${redirectUri}`);
 
@@ -54,8 +54,8 @@ router.post('/consent', async (req, res, next) => {
 });
 
 /**
- * GET /api/ais/consent/:consentId
- * Get consent details by consent ID
+ * GET /api/uk/ais/consent/:consentId
+ * Get UK AIS consent details by consent ID
  * 
  * Path params:
  * - consentId (required)
@@ -70,10 +70,10 @@ router.get('/consent/:consentId', async (req, res, next) => {
       providerCode = process.env.OB_PROVIDER_CODE || 'backbase_dev_uk'
     } = req.query;
 
-    console.log(`\n🔍 Fetching consent details: ${consentId}...`);
+    console.log(`\n🔍 Fetching UK AIS consent details: ${consentId}...`);
     const consent = await getConsentDetails(providerCode, consentId);
     
-    console.log(`✅ Consent details retrieved\n`);
+    console.log(`✅ UK AIS consent details retrieved\n`);
 
     res.json({
       success: true,
@@ -86,8 +86,8 @@ router.get('/consent/:consentId', async (req, res, next) => {
 });
 
 /**
- * DELETE /api/ais/consent/:consentId
- * Revoke/Delete an AIS consent by consent ID
+ * DELETE /api/uk/ais/consent/:consentId
+ * Revoke/Delete a UK AIS consent by consent ID
  * 
  * Path params:
  * - consentId (required)
@@ -102,12 +102,12 @@ router.delete('/consent/:consentId', async (req, res, next) => {
       providerCode = process.env.OB_PROVIDER_CODE || 'backbase_dev_uk'
     } = req.query;
 
-    console.log(`\n🗑️  Revoking AIS consent: ${consentId}...`);
+    console.log(`\n🗑️  Revoking UK AIS consent: ${consentId}...`);
     console.log(`   Provider: ${providerCode}`);
     
     await revokeAISConsent(providerCode, consentId);
     
-    console.log(`✅ AIS consent revoked successfully\n`);
+    console.log(`✅ UK AIS consent revoked successfully\n`);
 
     res.json({
       success: true,
@@ -121,3 +121,4 @@ router.delete('/consent/:consentId', async (req, res, next) => {
 });
 
 export default router;
+

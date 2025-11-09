@@ -1,12 +1,12 @@
 /**
- * SaltEdge Extended Functions - ARCHIVED
+ * UK Open Banking SaltEdge Extended Functions - ARCHIVED
  * 
  * These functions are not currently used in the API but preserved for future reference.
  * They provide additional AIS capabilities beyond basic consent flow.
  * 
  * To use these functions:
  * 1. Import needed functions from this file
- * 2. Add corresponding routes in ais.js
+ * 2. Add corresponding routes in routes/uk/ais.js
  * 3. Update documentation
  * 
  * ARCHIVED DATE: 2025-11-02
@@ -14,15 +14,7 @@
  */
 
 import axios from 'axios';
-
-/**
- * Get base URL for SaltEdge Priora
- */
-function getBaseUrl() {
-  const protocol = process.env.PROTOCOL || 'https';
-  const prioraUrl = process.env.PRIORA_URL || 'priora.saltedge.com';
-  return `${protocol}://${prioraUrl}`;
-}
+import { getBaseUrl } from './shared/config.js';
 
 /**
  * Exchange authorization code for AIS access token
